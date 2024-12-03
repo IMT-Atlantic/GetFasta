@@ -1,0 +1,30 @@
+setwd("D:/Rproject/BulkEpigeneticProgram/300BCG")
+
+library(Biostrings)
+library(BSgenome.Hsapiens.UCSC.hg38)
+
+Data <- read.csv(file = "TrainedGeneImportant.csv")
+genome <- BSgenome.Hsapiens.UCSC.hg38
+
+# 创建一个空的列表来存储FASTA格式的序列
+fasta_sequences <- list()
+
+# 提取每个peak的序列并存储到列表中
+for (i in 1:nrow(Data)) {
+  chr <- as.character(Data$seqnames[i])  # 获取染色体名
+  start <- Data$start[i]  # 获取起始位置
+  end <- Data$end[i]  # 获取终止位置
+  gene_symbol <- as.character(Data$SYMBOL[i])  # 获取基因符号
+  
+  # 提取对应的序列
+  seq <- getSeq(genome, chr, start, end)
+  
+  # 创建FASTA条目（以基因符号为标识符）
+  fasta_sequences[[i]] <- paste(">", gene_symbol, "\n", seq, sep="")
+}
+
+# 合并所有FASTA序列
+fasta_output <- paste(fasta_sequences, collapse = "\n")
+
+# 将FASTA序列保存为文件
+writeLines(fasta_output, "TrainedPeakImportant.fasta")
